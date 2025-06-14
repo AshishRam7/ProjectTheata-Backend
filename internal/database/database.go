@@ -21,12 +21,12 @@ import (
 
 // Struct definitions remain the same...
 type ChatLine struct {
-	ID         int64
-	ChatID     int
-	UserID     int
-	UserHandle string
-	LineText   string
-	CreatedAt  time.Time
+	ID         int64     `json:"id"`
+	ChatID     int       `json:"chat_id"`
+	UserID     int       `json:"-"` // Hide internal user ID from JSON
+	UserHandle string    `json:"speaker"`
+	LineText   string    `json:"text"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 type LastMessagePreview struct {
@@ -94,8 +94,6 @@ func New() Service {
 		return dbInstance
 	}
 
-	// *** THE FIX IS HERE: Add ',auth' to the search_path parameter ***
-	// This tells PostgreSQL to look for tables in our main schema AND the auth schema.
 	connStr := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%s/%s?sslmode=disable&search_path=%s,auth",
 		username,
@@ -152,9 +150,6 @@ func New() Service {
 	dbInstance = &service{db: db}
 	return dbInstance
 }
-
-// --- ALL OTHER METHODS (Health, CreateChat, GetChatsForUser, etc.) remain unchanged ---
-// The rest of the file is identical to the previous version.
 func (s *service) Health() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
